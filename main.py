@@ -2,7 +2,12 @@ import asyncio
 import asyncpg
 import logging
 from colorlog import ColoredFormatter
+from flask import Flask
+import config
+import crud
 from database import engine, Base
+from models import Roles
+from initialization import add_start_data
 
 handler = logging.StreamHandler()
 formatter = ColoredFormatter(
@@ -23,29 +28,37 @@ logger.setLevel(logging.DEBUG)
 logger.addHandler(handler)
 
 async def init_db():
-    retries = 10
+    retries = 5
 
     while retries > 0:
         try:
             async with engine.begin() as conn:
                 # await conn.run_sync(Base.metadata.drop_all)
                 await conn.run_sync(Base.metadata.create_all)
+
+                roles = await crud.get_all(Roles)
+
+                if not roles:
+                    await add_start_data()
+
                 return
         except asyncpg.exceptions.CannotConnectNowError as e:
             retries -= 1
             logging.error(f"{e}\n\nОсталось попыток: {retries}")
             await asyncio.sleep(5)
 
-async def main():
-    tasks = [
-        init_db()
-    ]
+def create_app():
+    app = Flask("auth_service")
+    app.config["SECRET_KEY"] = config.FLASK_KEY
 
-    await asyncio.gather(*tasks)
+    # from routes import bp
+    # app.register_blueprint(bp)
+
+    app.run(debug=True, use_reloader=False)
+
+async def main():
+    await init_db()
+    create_app()
 
 if __name__ == "__main__":
-    try:
-        logging.info("Сервис запущен")
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        logging.info("Сервис остановлен")
+    asyncio.run(main())

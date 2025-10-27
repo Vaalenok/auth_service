@@ -7,7 +7,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 engine = create_async_engine(
     f"postgresql+asyncpg://{config.DB_USERNAME}:{config.DB_PASSWORD}@{config.DB_IP}:{config.DB_PORT}/{config.DB_NAME}",
-    echo=False,
+    echo=True, # TODO: False чтобы меньше мусора
     pool_pre_ping=True
 )
 async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
