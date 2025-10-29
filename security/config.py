@@ -9,5 +9,5 @@ DB_IP = env("DB_IP")
 DB_PORT = env("DB_PORT")
 DB_NAME = env("DB_NAME")
 
-FLASK_KEY = env("FLASK_KEY")
+JWT_TOKEN = env("JWT_TOKEN")
 OWNER_PASSWORD = env("OWNER_PASSWORD")

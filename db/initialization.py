@@ -1,24 +1,17 @@
-import crud
-from models import User, Roles, AccessRule, ProductionElement
+from security import config
+from core import crud
+from db.models import User, Roles, AccessRule, ProductionElement
+from security.password import hash_password
 
 async def add_start_data():
-    pes = [
-        ProductionElement(name="ProductionElements"),
-        ProductionElement(name="Rules"),
-        ProductionElement(name="Roles"),
-        ProductionElement(name="Users"),
-        ProductionElement(name="Buildings"),
-        ProductionElement(name="BuildingsInfo"),
-        ProductionElement(name="BuildingsStats")
-    ]
+    pes = [ProductionElement(name=n) for n in
+           ["ProductionElements", "Rules", "Roles", "Users", "Buildings", "BuildingsInfo", "BuildingsStats"]]
 
-    roles = [
-        Roles(name="Guest"),
-        Roles(name="User"),
-        Roles(name="Manager"),
-        Roles(name="Admin"),
-        Roles(name="Owner")
-    ]
+    await crud.create(pes)
+
+    roles = [Roles(name=n) for n in ["Guest", "User", "Manager", "Admin", "Owner"]]
+
+    await crud.create(roles)
 
     guest_rules = [AccessRule(role=roles[0], production_element=pe) for pe in pes]
     guest_rules[4].read_permission = True
@@ -64,13 +57,13 @@ async def add_start_data():
         ) for pe in pes
     ]
 
+    await crud.create([el for arr in (guest_rules, user_rules, manager_rules, admin_rules, owner_rules) for el in arr])
+
     owner = [User(
         username="owner",
-        email="",
-        password_hash="",
+        email="owner",
+        password_hash=hash_password(config.OWNER_PASSWORD),
         role=roles[4]
-    )] # TODO: password_hash сделать из пароля в config
+    )]
 
-    for arr in (pes, roles, guest_rules, user_rules, manager_rules, admin_rules, owner_rules, owner):
-        for el in arr:
-            await crud.create(el)
+    await crud.create(owner)

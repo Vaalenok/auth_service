@@ -1,4 +1,9 @@
-flask~=3.1.2
+bcrypt~=5.0.0
+python-jose~=3.5.0
+uvicorn~=0.38.0
+pydantic~=2.12.3
+fastapi-jwt~=0.3.0
+fastapi~=0.120.1
 pytz~=2025.2
 sqlalchemy~=2.0.44
 environs~=14.3.0

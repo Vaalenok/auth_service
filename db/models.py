@@ -3,7 +3,7 @@ import uuid
 import pytz
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import mapped_column, Mapped, relationship
-from database import Base
+from db.database import Base
 
 def now_naive():
     return datetime.datetime.now(pytz.timezone("Europe/Moscow")).replace(tzinfo=None)

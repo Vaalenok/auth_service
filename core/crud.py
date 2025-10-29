@@ -1,11 +1,17 @@
 import uuid
 from sqlalchemy import select
-from typing import Type
-from database import connection, Base
+from typing import Union, Iterable, Type
+from db.database import connection, Base
 
 @connection(commit=False)
 async def get(model: Type[Base], _id: uuid.UUID, session):
     result = await session.execute(select(model).filter_by(id=_id))
+    _object = result.scalars().first()
+    return _object
+
+@connection(commit=False)
+async def get_by_param(model: Type[Base], session, **kwargs):
+    result = await session.execute(select(model).filter_by(**kwargs))
     _object = result.scalars().first()
     return _object
 
@@ -16,8 +22,11 @@ async def get_all(model: Type[Base], session):
     return objects
 
 @connection()
-async def create(new_object: Base, session):
-    session.add(new_object)
+async def create(new_object: Union[Base, Iterable[Base]], session):
+    if isinstance(new_object, Iterable) and not isinstance(new_object, Base):
+        session.add_all(new_object)
+    else:
+        session.add(new_object)
     await session.flush()
     return new_object
 
