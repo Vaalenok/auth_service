@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Response
 import core.crud as crud
 from db.models import User, Roles
-from core.jwt import role_required, get_current_user, auth_scheme
+from core.jwt import get_current_user, auth_scheme
 from security.password import verify_password, hash_password
 
-router = APIRouter(prefix="/api", tags=["auth"])
+router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 @router.post("/login")
 async def login(response: Response, data: dict, user = Depends(get_current_user)):
@@ -16,7 +16,7 @@ async def login(response: Response, data: dict, user = Depends(get_current_user)
 
     user = await crud.get_by_param(User, email=email)
 
-    if not user:
+    if not user or not user.is_active:
         raise HTTPException(status_code=401, detail="User not found")
 
     if not verify_password(password, user.password_hash):
@@ -61,14 +61,14 @@ async def register(data: dict, user = Depends(get_current_user)):
     await crud.create(new_user)
     return {"msg": "Successfully registered"}
 
-@router.get("/public")
-async def public(user=Depends(role_required(["Guest", "User", "Admin", "Owner"]))):
-    return {"message": "Доступно всем", "user": user}
+@router.get("/delete")
+async def delete(response: Response, user = Depends(get_current_user)):
+    if not user.get("email"):
+        return {"msg": "Didn't log in"}
 
-@router.get("/user")
-async def _user(user=Depends(role_required(["User", "Admin", "Owner"]))):
-    return {"message": f"Профиль пользователя: {user['email']}"}
+    _user = await crud.get_by_param(User, email=user.get("email"))
+    _user.is_active = False
+    await crud.update(_user)
 
-@router.get("/admin")
-async def admin(user=Depends(role_required(["Admin", "Owner"]))):
-    return {"message": f"Привет, {user['email']} (админ)"}
+    response.delete_cookie(key="access_token")
+    return {"msg": "Account deleted"}

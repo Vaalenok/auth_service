@@ -4,7 +4,7 @@ from colorlog import ColoredFormatter
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from core import crud
-from core.routes import auth
+from core.routes import auth, admin, user
 from db.database import engine, Base
 from db.models import Roles
 from db.initialization import add_start_data
@@ -41,6 +41,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 app.include_router(auth.router)
+app.include_router(admin.router)
+app.include_router(user.router)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=5000, reload=False)
