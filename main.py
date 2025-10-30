@@ -40,6 +40,14 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(lifespan=lifespan)
+
+@app.middleware("http")
+async def clear_cookie_on_unauthorized(request, call_next):
+    response = await call_next(request)
+    if response.status_code == 401:
+        response.delete_cookie("access_token")
+    return response
+
 app.include_router(auth.router)
 app.include_router(admin.router)
 app.include_router(user.router)

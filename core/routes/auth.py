@@ -1,8 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi_jwt import JwtAccessBearer
+import security.config as config
 import core.crud as crud
-from db.models import User, Roles
-from core.jwt import get_current_user, auth_scheme
+from db.models import User, Roles, now_naive
+from core.depends import get_current_user
 from security.password import verify_password, hash_password
+
+auth_scheme = JwtAccessBearer(secret_key=config.JWT_TOKEN)
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -30,8 +34,11 @@ async def login(response: Response, data: dict, user = Depends(get_current_user)
         value=token,
         httponly=True,
         samesite="lax",
-        max_age=3600
+        max_age=360000
     )
+
+    user.last_login_at = now_naive()
+    await crud.update(user)
 
     return {"msg": "Logged in"}
 

@@ -5,8 +5,10 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 from db.database import Base
 
+TIMEZONE = "Europe/Moscow"
+
 def now_naive():
-    return datetime.datetime.now(pytz.timezone("Europe/Moscow")).replace(tzinfo=None)
+    return datetime.datetime.now(pytz.timezone(TIMEZONE)).replace(tzinfo=None)
 
 class User(Base):
     __tablename__ = "users"
@@ -38,13 +40,15 @@ class Roles(Base):
         "User",
         back_populates="role",
         cascade="save-update",
-        passive_deletes=True
+        passive_deletes=True,
+        lazy="selectin"
     )
     rules: Mapped[list["AccessRule"]] = relationship(
         "AccessRule",
         back_populates="role",
         cascade="all, delete-orphan",
-        passive_deletes=True
+        passive_deletes=True,
+        lazy="selectin"
     )
 
 class AccessRule(Base):
@@ -83,5 +87,6 @@ class ProductionElement(Base):
         "AccessRule",
         back_populates="production_element",
         cascade="all, delete-orphan",
-        passive_deletes=True
+        passive_deletes=True,
+        lazy="selectin"
     )

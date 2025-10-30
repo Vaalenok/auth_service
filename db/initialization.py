@@ -48,7 +48,7 @@ async def add_start_data():
 
     owner_rules = [
         AccessRule(
-            role=roles[3],
+            role=roles[4],
             production_element=pe,
             read_permission=True,
             create_permission=True,
