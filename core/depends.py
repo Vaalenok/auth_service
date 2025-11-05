@@ -27,10 +27,7 @@ def access_marking(allowed_roles: list[str], element_name: str, method_name: str
             raise HTTPException(status_code=403, detail="Access denied")
 
         db_role = await crud.get_by_param(Roles, name=role)
-        print(db_role.rules)
-
         rule = next((r for r in db_role.rules if r.production_element.name == element_name), None)
-        print(rule)
 
         if not getattr(rule, f"{method_name}_permission"):
             raise HTTPException(status_code=403, detail="Access denied")
